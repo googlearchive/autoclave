@@ -7,9 +7,8 @@
 # Code distributed by Google as part of the polymer project is also
 # subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 
-set -e
-
 TMP=${TMP:-`mktemp -d -t 'autoclave'`}
+KEEP=${KEEP:-}
 
 [ -d ${TMP} ] || mkdir ${TMP}
 
@@ -37,7 +36,7 @@ process() {
     op="minor"
   fi
   local nexttag=`mversion ${op} | sed '1 s/^.*v/v/; 2,$d'`
-  bower install --config.directory=..
+  # bower install --config.directory=..
   if [ -x build.sh ]; then
     ./build.sh
   else
@@ -46,14 +45,16 @@ process() {
   git ci -m "release ${nexttag}"
   git tag ${nexttag}
   popd
-  # cleanup
+  popd
+  [ ${KEEP} ] || cleanup
 }
 
 cleanup() {
   [ -d ${TMP} ] && rm -rf ${TMP}/*
 }
 
-# trap "{ cleanup; exit 1; }" SIGINT SIGTERM
+# make Ctrl-C quit
+trap "{ cleanup; exit 1; }" SIGINT SIGTERM
 
 for repo in ${@}; do
   process ${repo}
