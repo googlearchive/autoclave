@@ -1,0 +1,23 @@
+{
+  "name": "autoclave",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PolymerLabs/autoclave.git"
+  },
+  "author": "The Polymer Authors",
+  "license": "BSD",
+  "bugs": {
+    "url": "https://github.com/PolymerLabs/autoclave/issues"
+  },
+  "homepage": "https://github.com/PolymerLabs/autoclave",
+  "dependencies": {
+    "eyespy": "git://github.com/PolymerLabs/eyespy.git",
+    "mversion": "^1.9.0"
+  }
+}
