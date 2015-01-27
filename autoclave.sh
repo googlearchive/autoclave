@@ -9,8 +9,17 @@
 
 TMP=${TMP:-`mktemp -d -t 'autoclave'`}
 KEEP=${KEEP:-}
+VERSION=${VERSION:-}
 
 [ -d ${TMP} ] || mkdir ${TMP}
+
+mversion="$PWD/node_modules/.bin/mversion"
+eyespy="$PWD/node_modules/.bin/eyespy"
+
+if [ ! -x ${mversion} -o ! -x ${eyespy} ]; then
+  echo "Install the node modules!"
+  exit 1
+fi
 
 process() {
   local repo=${1}
@@ -23,20 +32,26 @@ process() {
   git fetch --tags
   local curtag=$(git describe --tags `git rev-list --tags --max-count=1`)
   # ensure current tag is set
-  mversion "${curtag}" >/dev/null 2>&1
+  ${mversion} "${curtag}" >/dev/null 2>&1
   # figure out which semver bit to bump
   local major
   local minor
-  major=`git log ${curtag}..master -n 1 --oneline --grep "\[BREAKING\]"`
-  minor=`git log ${curtag}..master -n 1 --oneline --grep "\[(MINOR BREAKING|FEATURE)\]"`
-  local op="patch"
+  local op
+  # $VERSION is explicit, so skip checking the history
+  if [ -z ${VERSION} ]; then
+    major=`git log ${curtag}..master -n 1 --oneline --grep "\[BREAKING\]"`
+    minor=`git log ${curtag}..master -n 1 --oneline --grep "\[(MINOR BREAKING|FEATURE)\]"`
+  fi
   if [ -n "${major}" ]; then
     op="major"
   elif [ -n "${minor}" ]; then
     op="minor"
+  elif [ -n "${VERSION}" ]; then
+    op="${VERSION}"
+  else
+    op="patch"
   fi
-  local nexttag=`mversion ${op} | sed '1 s/^.*v/v/; 2,$d'`
-  # bower install --config.directory=..
+  local nexttag=`${mversion} ${op} | sed '1 s/^.*v/v/; 2,$d'`
   if [ -x build.sh ]; then
     ./build.sh
   else
@@ -44,18 +59,30 @@ process() {
   fi
   git ci -m "release ${nexttag}"
   git tag ${nexttag}
+  # push
   popd
   popd
-  [ ${KEEP} ] || cleanup
+  cleanup
 }
 
 cleanup() {
+  [ ${KEEP} ] && return
   [ -d ${TMP} ] && rm -rf ${TMP}/*
+}
+
+push() {
+  git push --tags
 }
 
 # make Ctrl-C quit
 trap "{ cleanup; exit 1; }" SIGINT SIGTERM
 
-for repo in ${@}; do
+REPOS=($@)
+
+if [ ${#REPOS[@]} = 0 ]; then
+  REPOS=(`${eyespy} -t token -c config.json`)
+fi
+
+for repo in ${REPOS[@]}; do
   process ${repo}
 done
