@@ -52,8 +52,13 @@ process() {
     op="patch"
   fi
   local nexttag=`${mversion} ${op} | sed '1 s/^.*v/v/; 2,$d'`
-  if [ -x build.sh ]; then
-    ./build.sh
+  if [ -x .autoclave-build.sh ]; then
+    if git diff --quiet; then
+      git add package.json bower.json
+      git ci -m 'prepare for release'
+      git push
+    fi
+    ./.autoclave-build.sh
   else
     git add -u
   fi
