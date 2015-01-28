@@ -9,11 +9,11 @@ that need to be released.
 ### Example:
 
 - Build one repo
-```sh
+```shell
 ./autoclave.sh Polymer/polymer
 ```
 - Build all repos
-```sh
+```shell
 ./autoclave.sh
 ```
   - This mode requires an eyespy config
@@ -43,13 +43,13 @@ All options to autoclave use environment variables
   - If set to true, do not push commits, just tag them
   - Default: FALSE, push release commits and tags
 
-One Repository: 
-```sh
+One Repository:
+```shell
 TMP=tmp KEEP=1 VERSION="1.0.0" DRYRUN=1 ./autoclave.sh Polymer/polymer
 ```
 
 All repositories:
-```sh
+```shell
 TMP=tmp KEEP=1 VERSION="1.0.0" DRYRUN=1 EYESPY_CONFIG="~/autoclave_config.json" EYESPY_TOKEN="~/.secret-github-token" ./autoclave.sh
 ```
 
@@ -63,7 +63,7 @@ This script must have a clean tree with a staged commit at the end of running.
 
 ### Example:
 
-```sh
+```shell
 #!/usr/bin/env bash
 RELEASE=(foobuild.min.js)
 npm install
