@@ -12,6 +12,7 @@ KEEP=${KEEP:-}
 VERSION=${VERSION:-}
 EYESPY_CONFIG=${EYESPY_CONFIG:-"config.json"}
 EYESPY_TOKEN=${EYESPY_TOKEN:-"token"}
+DRYRUN=${DRYRUN:-}
 
 [ -d ${TMP} ] || mkdir ${TMP}
 
@@ -59,7 +60,7 @@ process() {
       [ -e bower.json ] && git add bower.json
       [ -e package.json ] && git add package.json
       git ci -m "prepare for release ${nexttag}"
-      # git push
+      push "master"
     fi
     ./.autoclave-build.sh
   else
@@ -67,7 +68,7 @@ process() {
   fi
   git ci -m "release ${nexttag}"
   git tag ${nexttag}
-  # push
+  push
   popd
   popd
   cleanup
@@ -79,7 +80,13 @@ cleanup() {
 }
 
 push() {
-  git push --tags
+  [ ${DRYRUN} ] && return
+  local branch=${1}
+  if [ ${branch} ]; then
+    git push origin ${branch}
+  else
+    git push --tags
+  fi
 }
 
 # make Ctrl-C quit
