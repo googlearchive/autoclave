@@ -10,6 +10,8 @@
 TMP=${TMP:-`mktemp -d -t 'autoclave'`}
 KEEP=${KEEP:-}
 VERSION=${VERSION:-}
+EYESPY_CONFIG=${EYESPY_CONFIG:-"config.json"}
+EYESPY_TOKEN=${EYESPY_TOKEN:-"token"}
 
 [ -d ${TMP} ] || mkdir ${TMP}
 
@@ -53,10 +55,11 @@ process() {
   fi
   local nexttag=`${mversion} ${op} | sed '1 s/^.*v/v/; 2,$d'`
   if [ -x .autoclave-build.sh ]; then
-    if git diff --quiet; then
-      git add package.json bower.json
-      git ci -m 'prepare for release'
-      git push
+    if ! git diff --quiet; then
+      [ -e bower.json ] && git add bower.json
+      [ -e package.json ] && git add package.json
+      git ci -m "prepare for release ${nexttag}"
+      # git push
     fi
     ./.autoclave-build.sh
   else
@@ -85,7 +88,7 @@ trap "{ cleanup; exit 1; }" SIGINT SIGTERM
 REPOS=($@)
 
 if [ ${#REPOS[@]} = 0 ]; then
-  REPOS=(`${eyespy} -t token -c config.json`)
+  REPOS=(`${eyespy} -t ${EYESPY_TOKEN} -c ${EYESPY_CONFIG}`)
 fi
 
 for repo in ${REPOS[@]}; do
