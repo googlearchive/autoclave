@@ -28,7 +28,13 @@ process() {
   local repo=${1}
   local dir=${repo##*[/\\]}
   pushd ${TMP}
-  [ -d ${dir} ] || git clone "git://github.com/${repo}"
+  if [ ! -d ${dir} ]; then
+    if [ ${DRYRUN} ]; then
+      git clone "git://github.com/${repo}"
+    else
+      git clone "git+ssh://git@github.com/${repo}"
+    fi
+  fi
   pushd ${dir}
   git checkout master
   git pull
